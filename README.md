@@ -169,7 +169,16 @@ defmodule Members.Member do
 end
 ``` 
 
-Then you can play around iex by running 'iex -S mix'. Creating the member insize iex will gives us nil values since we dont have any records yet in the member table.
+Then you can play around iex by running 'iex -S mix'. This creates a blank member
+```
+iex(1)> person = %Members.Member{}
+%Members.Member{__meta__: #Ecto.Schema.Metadata<:built, "member">,
+ birthdate: nil, first_name: nil, gender: nil, id: nil, inserted_at: nil,
+ last_name: nil, member_id: nil, updated_at: nil}
+iex(2)>
+```
+
+Create a new Member with data
 
 ```
 iex(7)> person = %Members.Member{member_id: "1234", first_name: "John", last_name: "Doe", birthdate: {2000,01,01}, gender: "M"}
@@ -192,5 +201,41 @@ INSERT INTO `member` (`birthdate`,`first_name`,`gender`,`last_name`,`member_id`,
 iex(3)>
 ```
 
+## 13. Validating Changes
+You can validate changes before the data is actually save to the database. For example, member_id, first_name and last_name is required.
+
+Add a changeset to Members.Member module in /lib/members/member.ex
+
+```
+def changeset(member, params \\ %{}) do
+  member
+  |> Ecto.Changeset.cast(params, [:member_id, :first_name, :last_name, :birthdate, :gender])
+  |> Ecto.Changeset.validate_required([:member_id, :first_name, :last_name])
+end  
+```
+The cast changeset tells Ecto which parameters are allowed. The second one, tells which parameters are required.
+
+```
+iex(12)> person = %Members.Member{}
+%Members.Member{__meta__: #Ecto.Schema.Metadata<:built, "member">,
+ birthdate: nil, first_name: nil, gender: nil, id: nil, inserted_at: nil,
+ last_name: nil, member_id: nil, updated_at: nil}
+iex(13)>
+nil
+iex(14)> changeset = Members.Member.changeset(person)
+#Ecto.Changeset<action: nil, changes: %{},
+ errors: [member_id: {"can't be blank", [validation: :required]},
+  first_name: {"can't be blank", [validation: :required]},
+  last_name: {"can't be blank", [validation: :required]}],
+ data: #Members.Member<>, valid?: false>
+```
+
+You can also check the changeset first before doing an insert:
+
+```
+iex(16)> changeset.valid?
+false
+iex(17)>
+```
 
 

@@ -9,4 +9,11 @@ defmodule Members.Member do
         field :gender, :string
         timestamps()
     end
+
+    def changeset(member, params \\ %{}) do
+        member
+        |> Ecto.Changeset.cast(params, [:member_id, :first_name, :last_name, :birthdate, :gender])
+        |> Ecto.Changeset.validate_required([:member_id, :first_name, :last_name])
+    end  
+    
 end
