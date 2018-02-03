@@ -1,13 +1,15 @@
 # Members
 
-**TODO: Add description**
+## Description
+This is an eample application using Ecto and Mysql. These are the steps on how to setup
+Ecto, its dependencies and create database and tables.
 
 ## Installation
 
-# To create this project:
+## 1. To create this project:
 $ mix new members --sup
 
-# Open up mix.exs in an editor and add
+## 2. Open up mix.exs in an editor and add
 
 ```
 def deps do
@@ -18,10 +20,12 @@ def deps do
 end
 ```
 
-# Setup some configuration for Ecto to be able to talk to Mysql database
+## 3. Setup some configuration for Ecto to be able to talk to Mysql database
+```
 $ mix ecto.gen.repo -r Members.Repo
+```
 
-# Configure in config/config.exs
+## 4. Configure in config/config.exs
 
 ```
 config :members, Members.Repo,
@@ -32,14 +36,15 @@ config :members, Members.Repo,
   hostname: "localhost"
 ```
 
-# Members.Repo module is defined in lib/members/repo.ex
+## 5. Members.Repo module is defined in lib/members/repo.ex
+
 ```
 defmodule Members.Repo do
   use Ecto.Repo, otp_app: :members
 end
 ```
 
-# Setup Members.Repo as a supervisor within the application's supervisor tree. In /lib/members/applicaiton.ex
+## 6. Setup Members.Repo as a supervisor within the application's supervisor tree. In /lib/members/applicaiton.ex
 
 ```
 def start(_type, _args) do
@@ -52,11 +57,22 @@ def start(_type, _args) do
 ```
 This is needed for the Ecto process be able to query the database
 
-# Add another configguration to config/config.exs
+## 7. Add another configguration to config/config.exs
 
 ```
   config :members, ecto_repos: [Members.Repo]
 ```
 
-# Setting up the Database
+## 8. Setting up the Database
+
+```
+$ mix ecto.create
+```
+At this time, the database has been created. You cannot query the database yet, since there aren't any tables.
+
+## 9. Lets create a migration to create a table.
+
+```
+$ mix ecto.gen.migration create_members
+```
 
