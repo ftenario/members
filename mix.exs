@@ -24,6 +24,8 @@ defmodule Members.Mixfile do
     [
       {:ecto, "~> 2.0"},
       {:mariaex, ">= 0.8.2"},
+      {:timex, "~> 3.0"},
+      {:timex_ecto, "~> 3.0"},
     ]
   end
 end

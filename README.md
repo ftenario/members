@@ -1,8 +1,8 @@
 # Members
 
 ## Description
-This is an eample application using Ecto and Mysql. These are the steps on how to setup
-Ecto, its dependencies and create database and tables.
+An example using Ecto and Mysql. These are the steps on how to setup
+Ecto, its dependencies and create database and tables in MySQL.
 
 ## Installation
 
@@ -16,6 +16,8 @@ def deps do
   [
       {:ecto, "~> 2.0"},
       {:mariaex, ">= 0.8.2"},
+      {:timex, "~> 3.0"},
+      {:timex_ecto, "~> 3.0"},
   ]
 end
 ```
@@ -35,7 +37,8 @@ config :members, Members.Repo,
   password: "password",
   hostname: "localhost"
 
- This is assumed that you already installed Mysql database server and configured to have a suername and password. 
+ This is assumed that you already installed Mysql database server and configured to 
+ have a username and password. 
 ```
 
 ## 5. Members.Repo module is defined in lib/members/repo.ex
@@ -46,7 +49,7 @@ defmodule Members.Repo do
 end
 ```
 
-## 6. Setup Members.Repo as a supervisor within the application's supervisor tree. In /lib/members/applicaiton.ex
+## 6. Setup Members.Repo as a supervisor within the application's supervisor tree. In /lib/members/application.ex
 
 ```
 def start(_type, _args) do
@@ -77,7 +80,8 @@ mysql> show tables;
 Empty set (0.01 sec)
 
 ```
-At this time, the database has been created. You cannot query the database yet, since there aren't any tables.
+At this time, the database has been created. You cannot query the database yet, 
+since there aren't any tables.
 
 ## 9. Lets create a migration to create a table.
 
@@ -105,7 +109,7 @@ defmodule Members.Repo.Migrations.CreateMember do
       add :member_id, :string
       add :first_name, :string
       add :last_name, :string
-      add :birthdate, :date
+      add :birthdate, Timex.Ecto.Date
       add :gender, :string 
 
       timestamps()
@@ -145,4 +149,48 @@ $ mix ecto.rollback
 ```
 
 ## 11. Creating the Schema
+
+By creating a schema, we associate the database table to Elixir. It is a representation on Elixir of the data from the database.
+
+Create a file "lib/members/member.ex". The schema "member" is a singular naming convention.
+
+```
+defmodule Members.Member do
+    use Ecto.Schema
+
+    schema "member" do
+        field :member_id, :string
+        field :first_name, :string
+        field :last_name, :string
+        field :birthdate, Timex.Ecto.Date  
+        field :gender, :string
+        timestamps
+    end
+end
+``` 
+
+Then you can play around iex by running 'iex -S mix'. Creating the member insize iex will gives us nil values since we dont have any records yet in the member table.
+
+```
+iex(7)> person = %Members.Member{member_id: "1234", first_name: "John", last_name: "Doe", birthdate: {2000,01,01}, gender: "M"}
+%Members.Member{__meta__: #Ecto.Schema.Metadata<:built, "member">,
+ birthdate: {2000, 1, 1}, first_name: "John", gender: "M", id: nil,
+ inserted_at: nil, last_name: "Doe", member_id: "1234", updated_at: nil}
+iex(8)>
+```
+## 12. Insert Data
+
+```
+iex(2)> Members.Repo.insert(person)
+12:25:41.836 [debug] QUERY OK db=6.2ms
+INSERT INTO `member` (`birthdate`,`first_name`,`gender`,`last_name`,`member_id`,`inserted_at`,`updated_at`) VALUES (?,?,?,?,?,?,?) [{2000, 1, 1}, "John", "M", "Doe", "1234", {{2018, 2, 3}, {20, 25, 41, 821334}}, {{2018, 2, 3}, {20, 25, 41, 822841}}]
+{:ok,
+ %Members.Member{__meta__: #Ecto.Schema.Metadata<:loaded, "member">,
+  birthdate: {2000, 1, 1}, first_name: "John", gender: "M", id: 3,
+  inserted_at: ~N[2018-02-03 20:25:41.821334], last_name: "Doe",
+  member_id: "1234", updated_at: ~N[2018-02-03 20:25:41.822841]}}
+iex(3)>
+```
+
+
 
