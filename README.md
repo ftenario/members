@@ -215,6 +215,8 @@ end
 ```
 The cast changeset tells Ecto which parameters are allowed. The second one, tells which parameters are required.
 
+Lets check how changeset is use:
+
 ```
 iex(12)> person = %Members.Member{}
 %Members.Member{__meta__: #Ecto.Schema.Metadata<:built, "member">,
@@ -238,4 +240,172 @@ false
 iex(17)>
 ```
 
+Lets do a changeset with valid data:
 
+```
+iex(17)> person = %Members.Member{member_id: "9807", first_name: "Jane", last_name: "Doe"}
+%Members.Member{__meta__: #Ecto.Schema.Metadata<:built, "member">,
+ birthdate: nil, first_name: "Jane", gender: nil, id: nil, inserted_at: nil,
+ last_name: "Doe", member_id: "9807", updated_at: nil}
+iex(18)>
+nil
+iex(19)> changeset = Members.Member.changeset(person)
+#Ecto.Changeset<action: nil, changes: %{}, errors: [], data: #Members.Member<>,
+ valid?: true>
+iex(20)> changeset.valid?
+true
+iex(21)> Members.Repo.insert(changeset)
+
+13:22:38.559 [debug] QUERY OK db=9.3ms
+INSERT INTO `member` (`first_name`,`last_name`,`member_id`,`inserted_at`,`updated_at`) VALUES (?,?,?,?,?) ["Jane", "Doe", "9807", {{2018, 2, 3}, {21, 22, 38, 536323}}, {{2018, 2, 3}, {21, 22, 38, 538641}}]
+{:ok,
+ %Members.Member{__meta__: #Ecto.Schema.Metadata<:loaded, "member">,
+  birthdate: nil, first_name: "Jane", gender: nil, id: 7,
+  inserted_at: ~N[2018-02-03 21:22:38.536323], last_name: "Doe",
+  member_id: "9807", updated_at: ~N[2018-02-03 21:22:38.538641]}}
+iex(22)>
+```
+
+The result when running the changset from the member module is an atom. Either :ok or :error, in this case, we can create a case statement to determine what should we do.
+
+```
+case Membwers.Repo.insert(changeset) do
+  {:ok, member} ->
+    ... do something with the member
+  {:error, changeset} ->
+    ... do something with the changeset
+end
+```
+
+## 14. Making Queries
+
+Lets insert some test data first.
+
+```
+members = [
+  %Members.Member{member_id: "11111", first_name: "David", last_name: "Tan"},
+  %Members.Member{member_id: "22222", first_name: "Susan", last_name: "Uy"},
+  %Members.Member{member_id: "33333", first_name: "Martin", last_name: "Reyes"},
+]
+
+Enum.each(members, fn(m) -> Members.Repo.insert(m) end)
+```
+
+## 15. Fetching a Single record
+
+```
+Members.Member |> Ecto.Query.first |> Members.Repo.one
+
+22:31:55.362 [debug] QUERY OK source="member" db=0.6ms
+SELECT m0.`id`, m0.`member_id`, m0.`first_name`, m0.`last_name`, m0.`birthdate`, m0.`gender`, m0.`inserted_at`, m0.`updated_at` FROM `member` AS m0 ORDER BY m0.`id` LIMIT 1 []
+%Members.Member{__meta__: #Ecto.Schema.Metadata<:loaded, "member">,
+ birthdate: nil, first_name: "Jane", gender: nil, id: 7,
+ inserted_at: ~N[2018-02-03 21:22:39.000000], last_name: "Doe",
+ member_id: "9807", updated_at: ~N[2018-02-03 21:22:39.000000]}
+iex(64)>
+
+Members.Member |> Ecto.Query.last |> Members.Repo.one
+
+```
+
+## 16. Fetching all records
+
+```
+Members.Member |> Members.Repo.all
+
+ %Members.Member{__meta__: #Ecto.Schema.Metadata<:loaded, "member">,
+  birthdate: nil, first_name: "Jane", gender: nil, id: 8,
+  inserted_at: ~N[2018-02-03 21:24:45.000000], last_name: "Doe",
+  member_id: "9807", updated_at: ~N[2018-02-03 21:24:45.000000]},
+ %Members.Member{__meta__: #Ecto.Schema.Metadata<:loaded, "member">,
+  birthdate: nil, first_name: "David", gender: nil, id: 9,
+  inserted_at: ~N[2018-02-03 21:41:41.000000], last_name: "Tan",
+  member_id: "11111", updated_at: ~N[2018-02-03 21:41:41.000000]},
+ %Members.Member{__meta__: #Ecto.Schema.Metadata<:loaded, "member">,
+  birthdate: nil, first_name: "Susan", gender: nil, id: 10,
+  inserted_at: ~N[2018-02-03 21:41:41.000000], last_name: "Uy",
+  member_id: "22222", updated_at: ~N[2018-02-03 21:41:41.000000]},
+ %Members.Member{__meta__: #Ecto.Schema.Metadata<:loaded, "member">,
+  birthdate: nil, first_name: "Martin", gender: nil, id: 11,
+  inserted_at: ~N[2018-02-03 21:41:41.000000], last_name: "Reyes",
+  member_id: "33333", updated_at: ~N[2018-02-03 21:41:41.000000]}]
+```
+
+Fetching by other fields:
+
+```
+Members.Member |> Members.Repo.get_by(firstname: "Jane")
+```
+
+## 17. Fetching records based on Id
+
+```
+iex(93)> Members.Member |> Members.Repo.get(8);
+
+22:39:37.049 [debug] QUERY OK source="member" db=0.6ms
+SELECT m0.`id`, m0.`member_id`, m0.`first_name`, m0.`last_name`, m0.`birthdate`, m0.`gender`, m0.`inserted_at`, m0.`updated_at` FROM `member` AS m0 WHERE (m0.`id` = ?) [8]
+%Members.Member{__meta__: #Ecto.Schema.Metadata<:loaded, "member">,
+ birthdate: nil, first_name: "Jane", gender: nil, id: 8,
+ inserted_at: ~N[2018-02-03 21:24:45.000000], last_name: "Doe",
+ member_id: "9807", updated_at: ~N[2018-02-03 21:24:45.000000]}
+```
+
+Fetch data on a specific attribute
+
+```
+iex(111)> Members.Member |> Members.Repo.get_by(first_name: "David")
+
+22:46:30.719 [debug] QUERY OK source="member" db=0.3ms
+SELECT m0.`id`, m0.`member_id`, m0.`first_name`, m0.`last_name`, m0.`birthdate`, m0.`gender`, m0.`inserted_at`, m0.`updated_at` FROM `member` AS m0 WHERE (m0.`first_name` = ?) ["David"]
+%Members.Member{__meta__: #Ecto.Schema.Metadata<:loaded, "member">,
+ birthdate: nil, first_name: "David", gender: nil, id: 9,
+ inserted_at: ~N[2018-02-03 21:41:41.000000], last_name: "Tan",
+ member_id: "11111", updated_at: ~N[2018-02-03 21:41:41.000000]}
+iex(112)>
+```
+
+## 18. Filtering results
+
+```
+import Ecto.Query
+
+iex(6)> Members.Member |> Ecto.Query.where(last_name: "Doe") |> Members.Repo.all
+
+22:57:29.542 [debug] QUERY OK source="member" db=2.2ms decode=2.3ms
+SELECT m0.`id`, m0.`member_id`, m0.`first_name`, m0.`last_name`, m0.`birthdate`, m0.`gender`, m0.`inserted_at`, m0.`updated_at` FROM `member` AS m0 WHERE (m0.`last_name` = 'Doe') []
+[%Members.Member{__meta__: #Ecto.Schema.Metadata<:loaded, "member">,
+  birthdate: nil, first_name: "Jane", gender: nil, id: 7,
+  inserted_at: ~N[2018-02-03 21:22:39.000000], last_name: "Doe",
+  member_id: "9807", updated_at: ~N[2018-02-03 21:22:39.000000]},
+ %Members.Member{__meta__: #Ecto.Schema.Metadata<:loaded, "member">,
+  birthdate: nil, first_name: "Jane", gender: nil, id: 8,
+  inserted_at: ~N[2018-02-03 21:24:45.000000], last_name: "Doe",
+  member_id: "9807", updated_at: ~N[2018-02-03 21:24:45.000000]}]
+iex(7)>
+```
+
+## 19. Updating records
+
+First, get the record
+```
+iex(36)> person = Members.Member |> Ecto.Query.first |> Members.Repo.one
+```
+
+Create a change of the record
+```
+iex(43)> changeset = Members.Member.changeset(person, %{gender: "F"})
+#Ecto.Changeset<action: nil, changes: %{}, errors: [], data: #Members.Member<>,
+ valid?: true>
+iex(44)>
+```
+
+Update the changes to the table
+```
+iex(45)> Members.Repo.update(changeset)
+{:ok,
+ %Members.Member{__meta__: #Ecto.Schema.Metadata<:loaded, "member">,
+  birthdate: nil, first_name: "Jane", gender: "F", id: 7,
+  inserted_at: ~N[2018-02-03 21:22:39.000000], last_name: "Doe",
+  member_id: "9807", updated_at: ~N[2018-02-04 07:04:46.000000]}}
+iex(46)>
+```
