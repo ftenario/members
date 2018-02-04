@@ -56,13 +56,13 @@ def start(_type, _args) do
     import Supervisor.Spec
 
     children = [
-      Friends.Repo
+      Members.Repo
     ]
   end
 ```
 This is needed for the Ecto process be able to query the database
 
-## 7. Add another configguration to config/config.exs
+## 7. Add another configuration to config/config.exs
 
 ```
   config :members, ecto_repos: [Members.Repo]
@@ -71,7 +71,7 @@ This is needed for the Ecto process be able to query the database
 ## 8. Setting up the Database
 
 ```
-$ mix ecto.create
+$ mix ecto.create  <- This will create the database in Mysql server
 
 $mysql -u <username> -p 
 mysql> use members_repo;
@@ -80,7 +80,7 @@ mysql> show tables;
 Empty set (0.01 sec)
 
 ```
-At this time, the database has been created. You cannot query the database yet, 
+The database is created but uou cannot query the database yet, 
 since there aren't any tables.
 
 ## 9. Lets create a migration to create a table.
