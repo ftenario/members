@@ -409,3 +409,24 @@ iex(45)> Members.Repo.update(changeset)
   member_id: "9807", updated_at: ~N[2018-02-04 07:04:46.000000]}}
 iex(46)>
 ```
+
+## 20. Delete a record
+
+First fetch a record
+```
+person = Members.Member |> Ecto.Query.first |> Members.Repo.one
+```
+
+Then delete the record
+```
+iex(42)> Members.Repo.delete(person)
+
+23:16:32.107 [debug] QUERY OK db=9.1ms
+DELETE FROM `member` WHERE `id` = ? [7]
+{:ok,
+ %Members.Member{__meta__: #Ecto.Schema.Metadata<:deleted, "member">,
+  birthdate: nil, first_name: "Jane", gender: "F", id: 7,
+  inserted_at: ~N[2018-02-03 21:22:39.000000], last_name: "Doe",
+  member_id: "9807", updated_at: ~N[2018-02-04 07:04:46.000000]}}
+iex(43)>
+```
